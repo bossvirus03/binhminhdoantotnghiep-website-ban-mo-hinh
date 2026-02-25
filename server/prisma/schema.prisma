@@ -1,0 +1,128 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    user
+    admin
+}
+
+enum PaymentMethod {
+    COD
+    BANK_TRANSFER
+}
+
+enum OrderStatus {
+    PENDING
+    PAID
+    CANCELLED
+}
+
+model User {
+    id                          String    @id @default(uuid())
+    email                       String    @unique
+    passwordHash                String
+    fullName                    String    @default("")
+    phone                       String    @default("")
+    address                     String    @default("")
+    role                        Role      @default(user)
+    resetPasswordTokenHash      String?   @db.Text
+    resetPasswordTokenExpiresAt DateTime?
+    createdAt                   DateTime  @default(now())
+    updatedAt                   DateTime  @updatedAt
+
+    orders Order[]
+}
+
+model Brand {
+    id       String    @id @default(uuid())
+    name     String    @unique
+    products Product[]
+}
+
+model Category {
+    id       String    @id @default(uuid())
+    name     String    @unique
+    products Product[]
+}
+
+model Product {
+    id          String   @id @default(uuid())
+    name        String
+    description String   @default("") @db.Text
+    price       Int      @default(0)
+    imageUrl    String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    brandId    String
+    brand      Brand    @relation(fields: [brandId], references: [id])
+    categoryId String
+    category   Category @relation(fields: [categoryId], references: [id])
+
+    orderItems OrderItem[]
+
+    images ProductImage[]
+
+    @@index([brandId])
+    @@index([categoryId])
+}
+
+model ProductImage {
+    id        String   @id @default(uuid())
+    productId String
+    product   Product  @relation(fields: [productId], references: [id])
+    url       String
+    sortOrder Int      @default(0)
+    createdAt DateTime @default(now())
+
+    @@index([productId])
+}
+
+model Order {
+    id            String        @id @default(uuid())
+    userId        String
+    user          User          @relation(fields: [userId], references: [id])
+    fullName      String        @default("")
+    phone         String        @default("")
+    address       String        @default("")
+    paymentMethod PaymentMethod
+    status        OrderStatus   @default(PENDING)
+    subtotal      Int           @default(0)
+    shippingFee   Int           @default(0)
+    total         Int           @default(0)
+    createdAt     DateTime      @default(now())
+
+    items OrderItem[]
+
+    @@index([userId])
+}
+
+model OrderItem {
+    id          String  @id @default(uuid())
+    orderId     String
+    order       Order   @relation(fields: [orderId], references: [id])
+    productId   String
+    product     Product @relation(fields: [productId], references: [id])
+    productName String
+    unitPrice   Int
+    quantity    Int
+    lineTotal   Int
+
+    @@index([orderId])
+    @@index([productId])
+}
+
+model ContactMessage {
+    id        String   @id @default(uuid())
+    name      String   @default("")
+    email     String   @default("")
+    phone     String   @default("")
+    message   String   @default("") @db.Text
+    createdAt DateTime @default(now())
+}
