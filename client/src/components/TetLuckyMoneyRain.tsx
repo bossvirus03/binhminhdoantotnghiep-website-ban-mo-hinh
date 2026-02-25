@@ -19,7 +19,7 @@ export const TetLuckyMoneyRain: React.FC = () => {
         images={images ?? undefined}
         color="rgba(248, 113, 113, 0.9)"
         snowflakeCount={120}
-        radius={[8, 16]}
+        radius={[2, 5]}
         speed={[0.7, 1.8]}
         wind={[-0.8, 0.8]}
       />
