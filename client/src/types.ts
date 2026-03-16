@@ -4,7 +4,7 @@ export type User = {
   fullName: string;
   phone: string;
   address: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
 };
 
 export type Brand = { id: string; name: string };
@@ -26,5 +26,5 @@ export type CartItem = {
   name: string;
   price: number;
   quantity: number;
-   imageUrl?: string | null;
+  imageUrl?: string | null;
 };
