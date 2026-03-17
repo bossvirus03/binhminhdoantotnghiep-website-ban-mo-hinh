@@ -4,7 +4,8 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
-export class SeedService implements OnModuleInit {
+// export class SeedService implements OnModuleInit {
+export class SeedService  {
   private readonly logger = new Logger(SeedService.name);
   private readonly PRODUCT_IMAGE_URLS = [
     'https://bizweb.dktcdn.net/thumb/large/100/479/026/products/vn-11134207-7r98o-lqinnu7vn1h3ef-1705295504374.jpg?v=1705295512183',
