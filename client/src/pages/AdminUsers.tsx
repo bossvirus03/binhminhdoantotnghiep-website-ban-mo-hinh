@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { apiFetch } from '../api/http';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import type { User } from '../types';
 
 export function AdminUsers() {
@@ -14,6 +16,21 @@ export function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const pageSize = 10;
+
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newRole, setNewRole] = useState<'user' | 'admin'>('user');
+  const [creating, setCreating] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+
+  const currentUserId = useMemo(() => {
+    try {
+      const stored = localStorage.getItem('accessToken');
+      return stored ? JSON.parse(atob(stored.split('.')[1]))?.sub : null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   async function load() {
     if (!token) return;
@@ -50,6 +67,10 @@ export function AdminUsers() {
 
   async function removeUser(id: string) {
     if (!token) return;
+    if (currentUserId && id === currentUserId) {
+      toast.error('Không thể xóa tài khoản của bạn');
+      return;
+    }
     if (!confirm('Xóa người dùng này?')) return;
     try {
       await apiFetch(`/admin/users/${id}`, { method: 'DELETE', token });
@@ -60,10 +81,40 @@ export function AdminUsers() {
     }
   }
 
+  async function createUser(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token) return;
+    if (!newEmail || !newPassword) {
+      toast.error('Nhập email và mật khẩu');
+      return;
+    }
+    setCreating(true);
+    try {
+      await apiFetch('/admin/users', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ email: newEmail, password: newPassword, role: newRole }),
+      });
+      toast.success('Đã tạo người dùng');
+      setNewEmail('');
+      setNewPassword('');
+      setNewRole('user');
+      setShowCreate(false);
+      load();
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Lỗi tạo người dùng');
+    } finally {
+      setCreating(false);
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Quản lý người dùng</CardTitle>
+        <div className="mt-3">
+          <Button onClick={() => setShowCreate(true)}>Tạo người dùng</Button>
+        </div>
       </CardHeader>
       <CardContent>
         {loading || !users ? (
@@ -150,6 +201,62 @@ export function AdminUsers() {
           </div>
         )}
       </CardContent>
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-3">
+          <div className="w-full max-w-md rounded-md bg-white p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Thêm người dùng</h3>
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setShowCreate(false)}
+              >
+                ×
+              </button>
+            </div>
+            <form className="mt-4 grid gap-3" onSubmit={createUser}>
+              <div className="grid gap-1">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  required
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label>Mật khẩu</Label>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label>Quyền</Label>
+                <Select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as 'user' | 'admin')}
+                >
+                  <option value="user">user</option>
+                  <option value="admin">admin</option>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setShowCreate(false)}>
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={creating}>
+                  {creating ? 'Đang tạo...' : 'Tạo'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

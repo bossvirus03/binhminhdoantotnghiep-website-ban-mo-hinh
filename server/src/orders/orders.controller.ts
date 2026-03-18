@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/auth/current-user.decorator';
 import type { CurrentUserInfo } from '../common/auth/current-user.decorator';
 import { JwtAuthGuard } from '../common/auth/jwt-auth.guard';
@@ -8,6 +8,12 @@ import { OrdersService } from './orders.service';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my')
+  getMyOrders(@CurrentUser() user: CurrentUserInfo) {
+    return this.ordersService.getUserOrders(user.id);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('checkout')

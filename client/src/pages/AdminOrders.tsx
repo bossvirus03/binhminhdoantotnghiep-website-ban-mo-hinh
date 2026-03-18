@@ -179,9 +179,9 @@ export function AdminOrders() {
                               )
                             }
                           >
-                            <option value="PENDING">PENDING</option>
-                            <option value="PAID">PAID</option>
-                            <option value="CANCELLED">CANCELLED</option>
+                            <option value="PENDING">Đang xử lý</option>
+                            <option value="PAID">Đã thanh toán</option>
+                            <option value="CANCELLED">Đã hủy</option>
                           </Select>
                         </td>
                         <td className="p-2 text-sm text-muted-foreground">

@@ -7,12 +7,15 @@ import {
   Delete,
   Post,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../common/auth/jwt-auth.guard';
 import { Roles } from '../common/auth/roles.decorator';
 import { RolesGuard } from '../common/auth/roles.guard';
 import { ProductsService } from '../products/products.service';
+import { CurrentUser, type CurrentUserInfo } from '../common/auth/current-user.decorator';
 import {
   AdminCreateProductDto,
   AdminUpdateProductDto,
@@ -139,8 +142,50 @@ export class AdminController {
     });
   }
 
+  @Post('users')
+  async createUser(
+    @Body() body: { email: string; password: string; role?: 'user' | 'admin' },
+  ) {
+    const email = body.email?.trim().toLowerCase();
+    const password = body.password;
+    const role = body.role ?? 'user';
+
+    if (!email || !password) {
+      throw new BadRequestException('Email và mật khẩu là bắt buộc');
+    }
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      throw new BadRequestException('Email đã tồn tại');
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role,
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        address: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return user;
+  }
+
   @Delete('users/:id')
-  deleteUser(@Param('id') id: string) {
+  deleteUser(@Param('id') id: string, @CurrentUser() current: CurrentUserInfo) {
+    if (current.id === id) {
+      throw new BadRequestException('Không thể tự xóa tài khoản của bạn');
+    }
     return this.prisma.user.delete({ where: { id } });
   }
 

@@ -28,3 +28,26 @@ export type CartItem = {
   quantity: number;
   imageUrl?: string | null;
 };
+
+export type OrderItem = {
+  productId: string;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+  productImage?: string | null;
+};
+
+export type Order = {
+  id: string;
+  status: "PENDING" | "PAID" | "CANCELLED";
+  paymentMethod: "COD" | "BANK_TRANSFER";
+  subtotal: number;
+  shippingFee: number;
+  total: number;
+  fullName: string;
+  phone: string;
+  address: string;
+  createdAt: string;
+  items: OrderItem[];
+};

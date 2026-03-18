@@ -23,6 +23,7 @@ import { AdminProducts } from "./pages/AdminProducts";
 import { AdminUsers } from "./pages/AdminUsers";
 import { AdminOrders } from "./pages/AdminOrders";
 import { AdminTaxonomies } from "./pages/AdminTaxonomies";
+import { OrdersPage } from "./pages/OrdersPage";
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,14 @@ const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <CheckoutPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "orders",
+        element: (
+          <RequireAuth>
+            <OrdersPage />
           </RequireAuth>
         ),
       },

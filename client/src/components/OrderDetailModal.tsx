@@ -27,17 +27,49 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             <b>Mã đơn:</b> {order.id}
           </div>
           <div>
-            <b>Khách:</b> {order.user?.email}
+            <b>Khách:</b> {order.user?.email || order.fullName || "(N/A)"}
           </div>
           <div>
-            <b>Trạng thái:</b> {order.status}
+            <b>Trạng thái:</b> {(() => {
+              switch (order.status) {
+                case "PAID":
+                  return "Đã thanh toán";
+                case "CANCELLED":
+                  return "Đã hủy";
+                case "PENDING":
+                default:
+                  return "Đang xử lý";
+              }
+            })()}
           </div>
+          {order.paymentMethod && (
+            <div>
+              <b>Thanh toán:</b>{" "}
+              {order.paymentMethod === "COD"
+                ? "Thanh toán khi nhận hàng"
+                : "Chuyển khoản"}
+            </div>
+          )}
           <div>
             <b>Ngày tạo:</b> {new Date(order.createdAt).toLocaleString("vi-VN")}
           </div>
           <div>
             <b>Tổng tiền:</b> {order.total?.toLocaleString("vi-VN")}đ
           </div>
+          {(order.phone || order.address) && (
+            <div className="mt-2 space-y-1">
+              {order.phone && (
+                <div>
+                  <b>SĐT:</b> {order.phone}
+                </div>
+              )}
+              {order.address && (
+                <div>
+                  <b>Địa chỉ:</b> {order.address}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         {order.items && (
           <div className="mt-4">
