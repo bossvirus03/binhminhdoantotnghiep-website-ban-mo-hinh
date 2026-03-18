@@ -7,8 +7,8 @@ const navItems = [
   { to: "/admin/dashboard", label: "Tổng quan" },
   { to: "/admin/products", label: "Sản phẩm" },
   { to: "/admin/taxonomies", label: "Brand & Danh mục" },
-  { to: "/admin/orders", label: "Đơn hàng" },
-  { to: "/admin/users", label: "Người dùng" },
+  { to: "/admin/orders", label: "Danh sách Đơn hàng" },
+  { to: "/admin/users", label: "Danh sách Người dùng" },
 ];
 
 function navItemClass({ isActive }: { isActive: boolean }) {
