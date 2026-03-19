@@ -111,7 +111,7 @@ export function AdminUsers() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Quản lý người dùng</CardTitle>
+        <CardTitle className="text-lg">Quản lý khách hàng</CardTitle>
         <div className="mt-3">
           <Button onClick={() => setShowCreate(true)}>Tạo người dùng</Button>
         </div>
