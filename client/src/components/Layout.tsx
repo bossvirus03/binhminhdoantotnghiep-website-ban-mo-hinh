@@ -179,7 +179,7 @@ export function Layout() {
                           }
                           onClick={() => setUserMenuOpen(false)}
                         >
-                          Đơn hàng
+                          Đơn mua
                         </NavLink>
                         <NavLink
                           to="/account"
@@ -191,7 +191,7 @@ export function Layout() {
                           }
                           onClick={() => setUserMenuOpen(false)}
                         >
-                          Hồ sơ cá nhân
+                          Thông tin cá nhân
                         </NavLink>
                       </div>
                       <Separator />

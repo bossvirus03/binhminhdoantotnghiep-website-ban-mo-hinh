@@ -190,7 +190,7 @@ export function OrdersPage() {
 
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" onClick={() => setSelected(order)}>
-                    Xem chi tiết
+                    Xem chi tiết đơn hàng
                   </Button>
                   <Button variant="ghost" size="sm" onClick={load}>
                     Làm mới

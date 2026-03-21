@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { apiFetch } from '../api/http';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { toast } from '@/components/ui/toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
+import { useAuth } from "../auth/AuthContext";
+import { apiFetch } from "../api/http";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 
 interface Product {
   id: string;
@@ -46,12 +46,12 @@ export function AdminProducts() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [form, setForm] = useState({
-    name: '',
-    price: '',
-    brandId: '',
-    categoryId: '',
-    imageUrls: [''],
-    description: '',
+    name: "",
+    price: "",
+    brandId: "",
+    categoryId: "",
+    imageUrls: [""],
+    description: "",
   });
 
   async function load() {
@@ -59,15 +59,15 @@ export function AdminProducts() {
     setLoading(true);
     try {
       const [prodList, brandList, categoryList] = await Promise.all([
-        apiFetch<Product[]>('/admin/products', { token }),
-        apiFetch<Brand[]>('/brands'),
-        apiFetch<Category[]>('/categories'),
+        apiFetch<Product[]>("/admin/products", { token }),
+        apiFetch<Brand[]>("/brands"),
+        apiFetch<Category[]>("/categories"),
       ]);
       setProducts(prodList);
       setBrands(brandList);
       setCategories(categoryList);
     } catch {
-      toast.error('Lỗi tải dữ liệu sản phẩm');
+      toast.error("Lỗi tải dữ liệu sản phẩm");
     } finally {
       setLoading(false);
     }
@@ -81,12 +81,12 @@ export function AdminProducts() {
   function openCreateForm() {
     setEditing(null);
     setForm({
-      name: '',
-      price: '',
-      brandId: brands[0]?.id ?? '',
-      categoryId: categories[0]?.id ?? '',
-      imageUrls: [''],
-      description: '',
+      name: "",
+      price: "",
+      brandId: brands[0]?.id ?? "",
+      categoryId: categories[0]?.id ?? "",
+      imageUrls: [""],
+      description: "",
     });
     setFormOpen(true);
   }
@@ -98,14 +98,14 @@ export function AdminProducts() {
       ? urlsFromImages
       : product.imageUrl
         ? [product.imageUrl]
-        : [''];
+        : [""];
     setForm({
       name: product.name,
       price: product.price.toString(),
       brandId: product.brandId,
       categoryId: product.categoryId,
       imageUrls: initialUrls,
-      description: product.description ?? '',
+      description: product.description ?? "",
     });
     setFormOpen(true);
   }
@@ -121,15 +121,17 @@ export function AdminProducts() {
 
     const price = Number(form.price);
     if (Number.isNaN(price) || price < 0) {
-      toast.error('Giá không hợp lệ');
+      toast.error("Giá không hợp lệ");
       return;
     }
     if (!form.name || !form.brandId || !form.categoryId) {
-      toast.error('Vui lòng nhập đầy đủ thông tin');
+      toast.error("Vui lòng nhập đầy đủ thông tin");
       return;
     }
 
-    const imageUrls = form.imageUrls.map((u) => u.trim()).filter((u) => u.length > 0);
+    const imageUrls = form.imageUrls
+      .map((u) => u.trim())
+      .filter((u) => u.length > 0);
 
     setSaving(true);
     try {
@@ -144,24 +146,24 @@ export function AdminProducts() {
 
       if (editing) {
         await apiFetch(`/admin/products/${editing.id}`, {
-          method: 'PATCH',
+          method: "PATCH",
           token,
           body: JSON.stringify(payload),
         });
-        toast.success('Đã cập nhật sản phẩm');
+        toast.success("Đã cập nhật sản phẩm");
       } else {
-        await apiFetch('/admin/products', {
-          method: 'POST',
+        await apiFetch("/admin/products", {
+          method: "POST",
           token,
           body: JSON.stringify(payload),
         });
-        toast.success('Đã thêm sản phẩm');
+        toast.success("Đã thêm sản phẩm");
       }
 
       closeForm();
       load();
     } catch {
-      toast.error(editing ? 'Lỗi cập nhật sản phẩm' : 'Lỗi thêm sản phẩm');
+      toast.error(editing ? "Lỗi cập nhật sản phẩm" : "Lỗi thêm sản phẩm");
     } finally {
       setSaving(false);
     }
@@ -169,13 +171,13 @@ export function AdminProducts() {
 
   async function removeProduct(id: string) {
     if (!token) return;
-    if (!confirm('Xóa sản phẩm này?')) return;
+    if (!confirm("Xóa sản phẩm này?")) return;
     try {
-      await apiFetch(`/admin/products/${id}`, { method: 'DELETE', token });
-      toast.success('Đã xóa sản phẩm');
+      await apiFetch(`/admin/products/${id}`, { method: "DELETE", token });
+      toast.success("Đã xóa sản phẩm");
       setProducts((prev) => (prev ? prev.filter((p) => p.id !== id) : prev));
     } catch {
-      toast.error('Lỗi xóa sản phẩm');
+      toast.error("Lỗi xóa sản phẩm");
     }
   }
 
@@ -184,7 +186,7 @@ export function AdminProducts() {
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-lg">Quản lý sản phẩm</CardTitle>
         <Button size="sm" onClick={openCreateForm}>
-          Thêm sản phẩm
+          Thêm sản phẩm mới
         </Button>
       </CardHeader>
       <CardContent>
@@ -193,7 +195,7 @@ export function AdminProducts() {
             <div className="w-full max-w-xl mx-4 rounded-md bg-background shadow-lg">
               <div className="flex items-center justify-between border-b px-4 py-2">
                 <h2 className="text-base font-semibold">
-                  {editing ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}
+                  {editing ? "Sửa sản phẩm" : "Thêm sản phẩm"}
                 </h2>
                 <button
                   type="button"
@@ -207,28 +209,40 @@ export function AdminProducts() {
               <form onSubmit={handleSubmit} className="space-y-3 p-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Tên sản phẩm</label>
+                    <label className="mb-1 block text-sm font-medium">
+                      Tên sản phẩm
+                    </label>
                     <Input
                       value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
                       required
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Giá (VNĐ)</label>
+                    <label className="mb-1 block text-sm font-medium">
+                      Giá (VNĐ)
+                    </label>
                     <Input
                       type="number"
                       min={0}
                       value={form.price}
-                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, price: e.target.value })
+                      }
                       required
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Brand</label>
+                    <label className="mb-1 block text-sm font-medium">
+                      Brand
+                    </label>
                     <Select
                       value={form.brandId}
-                      onChange={(e) => setForm({ ...form, brandId: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, brandId: e.target.value })
+                      }
                       required
                     >
                       <option value="" disabled>
@@ -242,10 +256,14 @@ export function AdminProducts() {
                     </Select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Danh mục</label>
+                    <label className="mb-1 block text-sm font-medium">
+                      Danh mục
+                    </label>
                     <Select
                       value={form.categoryId}
-                      onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, categoryId: e.target.value })
+                      }
                       required
                     >
                       <option value="" disabled>
@@ -259,7 +277,9 @@ export function AdminProducts() {
                     </Select>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="mb-1 block text-sm font-medium">Ảnh (URL)</label>
+                    <label className="mb-1 block text-sm font-medium">
+                      Ảnh (URL)
+                    </label>
                     {form.imageUrls.map((url, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Input
@@ -275,8 +295,13 @@ export function AdminProducts() {
                           variant="outline"
                           size="icon"
                           onClick={() => {
-                            const next = form.imageUrls.filter((_, i) => i !== index);
-                            setForm({ ...form, imageUrls: next.length ? next : [''] });
+                            const next = form.imageUrls.filter(
+                              (_, i) => i !== index,
+                            );
+                            setForm({
+                              ...form,
+                              imageUrls: next.length ? next : [""],
+                            });
                           }}
                         >
                           -
@@ -287,16 +312,22 @@ export function AdminProducts() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setForm({ ...form, imageUrls: [...form.imageUrls, ''] })}
+                      onClick={() =>
+                        setForm({ ...form, imageUrls: [...form.imageUrls, ""] })
+                      }
                     >
                       + Thêm ảnh
                     </Button>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="mb-1 block text-sm font-medium">Mô tả</label>
+                    <label className="mb-1 block text-sm font-medium">
+                      Mô tả
+                    </label>
                     <Textarea
                       value={form.description}
-                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, description: e.target.value })
+                      }
                       rows={3}
                     />
                   </div>
@@ -306,7 +337,11 @@ export function AdminProducts() {
                     Hủy
                   </Button>
                   <Button type="submit" disabled={saving}>
-                    {saving ? 'Đang lưu...' : editing ? 'Lưu thay đổi' : 'Tạo sản phẩm'}
+                    {saving
+                      ? "Đang lưu..."
+                      : editing
+                        ? "Cập nhật"
+                        : "Tạo sản phẩm"}
                   </Button>
                 </div>
               </form>
@@ -333,44 +368,69 @@ export function AdminProducts() {
                 </tr>
               </thead>
               <tbody>
-                {products && (() => {
-                  const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
-                  const safePage = Math.min(page, totalPages);
-                  const startIndex = (safePage - 1) * pageSize;
-                  const pageProducts = products.slice(startIndex, startIndex + pageSize);
-                  return pageProducts.map((p) => (
-                  <tr key={p.id} className="border-b last:border-b-0">
-                    <td className="p-2">
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-muted">
-                          <img
-                            src={p.images && p.images.length ? p.images[0]?.url : p.imageUrl}
-                            alt={p.name}
-                            loading="lazy"
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div className="font-medium line-clamp-2">{p.name}</div>
-                      </div>
-                    </td>
-                    <td className="p-2 text-right">{p.price.toLocaleString('vi-VN')}đ</td>
-                    <td className="p-2">{p.brand?.name || <Badge variant="outline">-</Badge>}</td>
-                    <td className="p-2">{p.category?.name || <Badge variant="outline">-</Badge>}</td>
-                    <td className="p-2 text-right space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => openEditForm(p)}>
-                        Sửa
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => removeProduct(p.id)}
-                      >
-                        Xóa
-                      </Button>
-                    </td>
-                  </tr>
-                ));
-                })()}
+                {products &&
+                  (() => {
+                    const totalPages = Math.max(
+                      1,
+                      Math.ceil(products.length / pageSize),
+                    );
+                    const safePage = Math.min(page, totalPages);
+                    const startIndex = (safePage - 1) * pageSize;
+                    const pageProducts = products.slice(
+                      startIndex,
+                      startIndex + pageSize,
+                    );
+                    return pageProducts.map((p) => (
+                      <tr key={p.id} className="border-b last:border-b-0">
+                        <td className="p-2">
+                          <div className="flex items-center gap-3">
+                            <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-muted">
+                              <img
+                                src={
+                                  p.images && p.images.length
+                                    ? p.images[0]?.url
+                                    : p.imageUrl
+                                }
+                                alt={p.name}
+                                loading="lazy"
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div className="font-medium line-clamp-2">
+                              {p.name}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-2 text-right">
+                          {p.price.toLocaleString("vi-VN")}đ
+                        </td>
+                        <td className="p-2">
+                          {p.brand?.name || <Badge variant="outline">-</Badge>}
+                        </td>
+                        <td className="p-2">
+                          {p.category?.name || (
+                            <Badge variant="outline">-</Badge>
+                          )}
+                        </td>
+                        <td className="p-2 text-right space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditForm(p)}
+                          >
+                            Sửa
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => removeProduct(p.id)}
+                          >
+                            Xóa
+                          </Button>
+                        </td>
+                      </tr>
+                    ));
+                  })()}
               </tbody>
             </table>
             {products && products.length > pageSize && (
@@ -385,7 +445,8 @@ export function AdminProducts() {
                   Trang trước
                 </Button>
                 <span className="text-muted-foreground">
-                  Trang {page}/{Math.max(1, Math.ceil(products.length / pageSize))}
+                  Trang {page}/
+                  {Math.max(1, Math.ceil(products.length / pageSize))}
                 </span>
                 <Button
                   type="button"
@@ -394,7 +455,10 @@ export function AdminProducts() {
                   disabled={page >= Math.ceil(products.length / pageSize)}
                   onClick={() =>
                     setPage((prev) =>
-                      Math.min(Math.max(1, Math.ceil(products.length / pageSize)), prev + 1),
+                      Math.min(
+                        Math.max(1, Math.ceil(products.length / pageSize)),
+                        prev + 1,
+                      ),
                     )
                   }
                 >

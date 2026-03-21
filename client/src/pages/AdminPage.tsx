@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/admin/dashboard", label: "Tổng quan" },
-  { to: "/admin/products", label: "Sản phẩm" },
+  { to: "/admin/products", label: "Thêm sản phẩm" },
   { to: "/admin/taxonomies", label: "Brand & Danh mục" },
   { to: "/admin/orders", label: "Danh sách Đơn hàng" },
   { to: "/admin/users", label: "Danh sách Người dùng" },
