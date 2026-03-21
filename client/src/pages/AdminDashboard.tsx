@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { apiFetch } from '../api/http';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import { useAuth } from "../auth/AuthContext";
+import { apiFetch } from "../api/http";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type DashboardStats = {
   userCount: number;
   productCount: number;
   orderCount: number;
   revenue: number;
-  ordersLast7Days: { date: string; label: string; orders: number; revenue: number }[];
+  ordersLast7Days: {
+    date: string;
+    label: string;
+    orders: number;
+    revenue: number;
+  }[];
   revenueByCategory: { category: string; value: number }[];
 };
 
@@ -21,7 +26,7 @@ export function AdminDashboard() {
   useEffect(() => {
     if (!token) return;
     setLoading(true);
-    apiFetch<DashboardStats>('/admin/dashboard', { token })
+    apiFetch<DashboardStats>("/admin/dashboard", { token })
       .then(setStats)
       .catch(() => setStats(null))
       .finally(() => setLoading(false));
@@ -42,7 +47,9 @@ export function AdminDashboard() {
           <>
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Người dùng</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Người dùng
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-2xl font-semibold">
                 {stats.userCount}
@@ -69,7 +76,7 @@ export function AdminDashboard() {
                 <CardTitle className="text-sm font-medium">Doanh thu</CardTitle>
               </CardHeader>
               <CardContent className="text-2xl font-semibold">
-                {stats.revenue.toLocaleString('vi-VN')}đ
+                {stats.revenue.toLocaleString("vi-VN")}đ
               </CardContent>
             </Card>
           </>
@@ -80,7 +87,9 @@ export function AdminDashboard() {
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Đơn hàng 7 ngày gần nhất</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Đơn hàng 7 ngày gần nhất
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Skeleton className="h-40 w-full" />
@@ -88,7 +97,9 @@ export function AdminDashboard() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Doanh thu theo danh mục</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Doanh thu theo danh mục
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Skeleton className="h-40 w-full" />
@@ -99,11 +110,15 @@ export function AdminDashboard() {
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Đơn hàng 7 ngày gần nhất</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Đơn hàng 7 ngày gần nhất
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {stats.ordersLast7Days.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Chưa có đơn hàng nào.</p>
+                <p className="text-sm text-muted-foreground">
+                  Chưa có đơn hàng nào.
+                </p>
               ) : (
                 <div className="flex h-40 items-end gap-2">
                   {(() => {
@@ -119,7 +134,9 @@ export function AdminDashboard() {
                         <div className="flex h-full w-full items-end rounded bg-muted">
                           <div
                             className="w-full rounded bg-primary"
-                            style={{ height: `${(d.orders / maxOrders) * 100}%` }}
+                            style={{
+                              height: `${(d.orders / maxOrders) * 100}%`,
+                            }}
                           />
                         </div>
                         <div className="text-muted-foreground">{d.label}</div>
@@ -134,11 +151,15 @@ export function AdminDashboard() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Doanh thu theo danh mục</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Doanh thu theo danh mục
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {stats.revenueByCategory.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Chưa có dữ liệu doanh thu.</p>
+                <p className="text-sm text-muted-foreground">
+                  Chưa có dữ liệu doanh thu.
+                </p>
               ) : (
                 <div className="space-y-2">
                   {(() => {
@@ -151,7 +172,7 @@ export function AdminDashboard() {
                         <div className="flex justify-between gap-2 text-xs">
                           <span className="font-medium">{c.category}</span>
                           <span className="text-muted-foreground">
-                            {c.value.toLocaleString('vi-VN')}đ
+                            {c.value.toLocaleString("vi-VN")}đ
                           </span>
                         </div>
                         <div className="h-2 w-full overflow-hidden rounded bg-muted">

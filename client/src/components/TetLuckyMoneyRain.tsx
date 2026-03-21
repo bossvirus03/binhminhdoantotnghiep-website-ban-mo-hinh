@@ -1,8 +1,9 @@
-import React from 'react';
-import Snowfall from 'react-snowfall';
+import React from "react";
+import Snowfall from "react-snowfall";
 
 // Dùng 1 hình bao lì xì chung cho hiệu ứng rơi
-const ENVELOPE_URL = 'https://bizweb.dktcdn.net/thumb/large/100/448/880/products/cay-mai-trang-no-hoa-69-b9ea73ff-20df-4cc2-b760-ba4adac9b320.png';
+const ENVELOPE_URL =
+  "https://bizweb.dktcdn.net/thumb/large/100/448/880/products/cay-mai-trang-no-hoa-69-b9ea73ff-20df-4cc2-b760-ba4adac9b320.png";
 
 export const TetLuckyMoneyRain: React.FC = () => {
   const [images, setImages] = React.useState<HTMLImageElement[] | null>(null);
