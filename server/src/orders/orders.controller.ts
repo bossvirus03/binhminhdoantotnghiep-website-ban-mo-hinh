@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/auth/current-user.decorator';
 import type { CurrentUserInfo } from '../common/auth/current-user.decorator';
 import { JwtAuthGuard } from '../common/auth/jwt-auth.guard';
@@ -17,7 +17,11 @@ export class OrdersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('checkout')
-  checkout(@CurrentUser() user: CurrentUserInfo, @Body() dto: CheckoutDto) {
+  checkout(
+    @CurrentUser() user: CurrentUserInfo,
+    @Body() dto: CheckoutDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ) {
     return this.ordersService.checkout({
       userId: user.id,
       items: dto.items,
@@ -25,6 +29,7 @@ export class OrdersController {
       phone: dto.phone,
       address: dto.address,
       paymentMethod: dto.paymentMethod,
+      idempotencyKey,
     });
   }
 }

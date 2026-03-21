@@ -1,9 +1,44 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private toCheckoutResult(order: {
+    id: string;
+    status: any;
+    paymentMethod: any;
+    subtotal: number;
+    shippingFee: number;
+    total: number;
+    createdAt: Date;
+    items: Array<{
+      productId: string;
+      productName: string;
+      unitPrice: number;
+      quantity: number;
+      lineTotal: number;
+    }>;
+  }) {
+    return {
+      id: order.id,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      subtotal: order.subtotal,
+      shippingFee: order.shippingFee,
+      total: order.total,
+      createdAt: order.createdAt,
+      items: order.items.map((it) => ({
+        productId: it.productId,
+        productName: it.productName,
+        unitPrice: it.unitPrice,
+        quantity: it.quantity,
+        lineTotal: it.lineTotal,
+      })),
+    };
+  }
 
   async getUserOrders(userId: string) {
     const orders = await this.prisma.order.findMany({
@@ -49,11 +84,26 @@ export class OrdersService {
     phone: string;
     address: string;
     paymentMethod: 'COD' | 'BANK_TRANSFER';
+    idempotencyKey?: string;
   }) {
     const user = await this.prisma.user.findUnique({
       where: { id: input.userId },
     });
     if (!user) throw new BadRequestException('User not found');
+
+    const idempotencyKey = input.idempotencyKey?.trim();
+    if (idempotencyKey) {
+      if (idempotencyKey.length > 128) {
+        throw new BadRequestException('Idempotency-Key too long');
+      }
+
+      const existing = await this.prisma.order.findFirst({
+        where: { userId: user.id, idempotencyKey },
+        include: { items: true },
+      });
+
+      if (existing) return this.toCheckoutResult(existing);
+    }
 
     const productIds = input.items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
@@ -83,37 +133,38 @@ export class OrdersService {
     const shippingFee = 0;
     const total = subtotal + shippingFee;
 
-    const saved = await this.prisma.order.create({
-      data: {
-        userId: user.id,
-        fullName: input.fullName,
-        phone: input.phone,
-        address: input.address,
-        paymentMethod: input.paymentMethod,
-        status: 'PENDING',
-        subtotal,
-        shippingFee,
-        total,
-        items: { create: orderItemsData },
-      },
-      include: { items: { include: { product: true } } },
-    });
+    try {
+      const saved = await this.prisma.order.create({
+        data: {
+          userId: user.id,
+          fullName: input.fullName,
+          phone: input.phone,
+          address: input.address,
+          paymentMethod: input.paymentMethod,
+          status: 'PENDING',
+          subtotal,
+          shippingFee,
+          total,
+          idempotencyKey: idempotencyKey || null,
+          items: { create: orderItemsData },
+        },
+        include: { items: true },
+      });
 
-    return {
-      id: saved.id,
-      status: saved.status,
-      paymentMethod: saved.paymentMethod,
-      subtotal: saved.subtotal,
-      shippingFee: saved.shippingFee,
-      total: saved.total,
-      createdAt: saved.createdAt,
-      items: saved.items.map((it) => ({
-        productId: it.productId,
-        productName: it.productName,
-        unitPrice: it.unitPrice,
-        quantity: it.quantity,
-        lineTotal: it.lineTotal,
-      })),
-    };
+      return this.toCheckoutResult(saved);
+    } catch (e: unknown) {
+      if (
+        idempotencyKey &&
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        const existing = await this.prisma.order.findFirst({
+          where: { userId: user.id, idempotencyKey },
+          include: { items: true },
+        });
+        if (existing) return this.toCheckoutResult(existing);
+      }
+      throw e;
+    }
   }
 }
