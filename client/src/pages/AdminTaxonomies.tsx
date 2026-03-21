@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { apiFetch } from '../api/http';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +13,19 @@ interface Taxonomy {
   name: string;
 }
 
+type PendingDelete = {
+  kind: 'brand' | 'category';
+  id: string;
+  name: string;
+};
+
 export function AdminTaxonomies() {
   const { token } = useAuth();
   const [brands, setBrands] = useState<Taxonomy[] | null>(null);
   const [categories, setCategories] = useState<Taxonomy[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [brandName, setBrandName] = useState('');
   const [brandEditing, setBrandEditing] = useState<string | null>(null);
@@ -104,35 +113,40 @@ export function AdminTaxonomies() {
     }
   }
 
-  async function deleteBrand(id: string) {
-    if (!token) return;
-    if (!confirm('Xóa brand này?')) return;
-    try {
-      await apiFetch(`/admin/brands/${id}`, { method: 'DELETE', token });
-      toast.success('Đã xóa brand');
-      setBrands((prev) => prev?.filter((b) => b.id !== id) ?? prev);
-      if (brandEditing === id) {
-        setBrandEditing(null);
-        setBrandName('');
-      }
-    } catch {
-      toast.error('Lỗi xóa brand');
-    }
+  function requestDeleteBrand(brand: Taxonomy) {
+    setPendingDelete({ kind: 'brand', id: brand.id, name: brand.name });
   }
 
-  async function deleteCategory(id: string) {
-    if (!token) return;
-    if (!confirm('Xóa danh mục này?')) return;
+  function requestDeleteCategory(category: Taxonomy) {
+    setPendingDelete({ kind: 'category', id: category.id, name: category.name });
+  }
+
+  async function confirmDelete() {
+    if (!token || !pendingDelete) return;
+    setDeleteLoading(true);
     try {
-      await apiFetch(`/admin/categories/${id}`, { method: 'DELETE', token });
-      toast.success('Đã xóa danh mục');
-      setCategories((prev) => prev?.filter((c) => c.id !== id) ?? prev);
-      if (categoryEditing === id) {
-        setCategoryEditing(null);
-        setCategoryName('');
+      if (pendingDelete.kind === 'brand') {
+        await apiFetch(`/admin/brands/${pendingDelete.id}`, { method: 'DELETE', token });
+        toast.success('Đã xóa brand');
+        setBrands((prev) => prev?.filter((b) => b.id !== pendingDelete.id) ?? prev);
+        if (brandEditing === pendingDelete.id) {
+          setBrandEditing(null);
+          setBrandName('');
+        }
+      } else {
+        await apiFetch(`/admin/categories/${pendingDelete.id}`, { method: 'DELETE', token });
+        toast.success('Đã xóa danh mục');
+        setCategories((prev) => prev?.filter((c) => c.id !== pendingDelete.id) ?? prev);
+        if (categoryEditing === pendingDelete.id) {
+          setCategoryEditing(null);
+          setCategoryName('');
+        }
       }
+      setPendingDelete(null);
     } catch {
-      toast.error('Lỗi xóa danh mục');
+      toast.error(pendingDelete.kind === 'brand' ? 'Lỗi xóa brand' : 'Lỗi xóa danh mục');
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
@@ -197,7 +211,11 @@ export function AdminTaxonomies() {
                       >
                         Sửa
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteBrand(b.id)}>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => requestDeleteBrand(b)}
+                      >
                         Xóa
                       </Button>
                     </div>
@@ -208,11 +226,11 @@ export function AdminTaxonomies() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2">
-            <div>
-              <p className="text-xs uppercase text-muted-foreground">Quản lý</p>
-              <CardTitle className="text-lg">Danh mục</CardTitle>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => requestDeleteCategory(c)}
+                      >
             </div>
             <div className="flex gap-2">
               {categoryEditing && (
@@ -223,6 +241,21 @@ export function AdminTaxonomies() {
                     setCategoryEditing(null);
                     setCategoryName('');
                   }}
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title={pendingDelete?.kind === 'brand' ? 'Xóa brand' : 'Xóa danh mục'}
+        description={
+          pendingDelete
+            ? `Bạn chắc chắn muốn xóa ${pendingDelete.kind === 'brand' ? 'brand' : 'danh mục'} "${pendingDelete.name}"? Hành động này không thể hoàn tác.`
+            : undefined
+        }
+        confirmText="Xóa"
+        confirmVariant="destructive"
+        loading={deleteLoading}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
                 >
                   Hủy sửa
                 </Button>
