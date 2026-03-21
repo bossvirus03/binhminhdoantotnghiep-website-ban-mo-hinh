@@ -85,21 +85,23 @@ model ProductImage {
 }
 
 model Order {
-    id            String        @id @default(uuid())
-    userId        String
-    user          User          @relation(fields: [userId], references: [id])
-    fullName      String        @default("")
-    phone         String        @default("")
-    address       String        @default("")
-    paymentMethod PaymentMethod
-    status        OrderStatus   @default(PENDING)
-    subtotal      Int           @default(0)
-    shippingFee   Int           @default(0)
-    total         Int           @default(0)
-    createdAt     DateTime      @default(now())
+    id             String        @id @default(uuid())
+    userId         String
+    user           User          @relation(fields: [userId], references: [id])
+    idempotencyKey String?       @db.VarChar(128)
+    fullName       String        @default("")
+    phone          String        @default("")
+    address        String        @default("")
+    paymentMethod  PaymentMethod
+    status         OrderStatus   @default(PENDING)
+    subtotal       Int           @default(0)
+    shippingFee    Int           @default(0)
+    total          Int           @default(0)
+    createdAt      DateTime      @default(now())
 
     items OrderItem[]
 
+    @@unique([userId, idempotencyKey])
     @@index([userId])
 }
 
