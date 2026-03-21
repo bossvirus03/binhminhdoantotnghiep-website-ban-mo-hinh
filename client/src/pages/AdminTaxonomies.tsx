@@ -226,11 +226,11 @@ export function AdminTaxonomies() {
           </CardContent>
         </Card>
 
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => requestDeleteCategory(c)}
-                      >
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <div>
+              <p className="text-xs uppercase text-muted-foreground">Quản lý</p>
+              <CardTitle className="text-lg">Danh mục</CardTitle>
             </div>
             <div className="flex gap-2">
               {categoryEditing && (
@@ -241,30 +241,11 @@ export function AdminTaxonomies() {
                     setCategoryEditing(null);
                     setCategoryName('');
                   }}
-
-      <ConfirmModal
-        open={pendingDelete !== null}
-        title={pendingDelete?.kind === 'brand' ? 'Xóa brand' : 'Xóa danh mục'}
-        description={
-          pendingDelete
-            ? `Bạn chắc chắn muốn xóa ${pendingDelete.kind === 'brand' ? 'brand' : 'danh mục'} "${pendingDelete.name}"? Hành động này không thể hoàn tác.`
-            : undefined
-        }
-        confirmText="Xóa"
-        confirmVariant="destructive"
-        loading={deleteLoading}
-        onCancel={() => setPendingDelete(null)}
-        onConfirm={confirmDelete}
-      />
                 >
                   Hủy sửa
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={saveCategory}
-                disabled={saving || !categoryName.trim()}
-              >
+              <Button size="sm" onClick={saveCategory} disabled={saving || !categoryName.trim()}>
                 {categoryEditing ? 'Lưu' : 'Thêm'}
               </Button>
             </div>
@@ -303,7 +284,11 @@ export function AdminTaxonomies() {
                       >
                         Sửa
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteCategory(c.id)}>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => requestDeleteCategory(c)}
+                      >
                         Xóa
                       </Button>
                     </div>
@@ -314,6 +299,21 @@ export function AdminTaxonomies() {
           </CardContent>
         </Card>
       </div>
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title={pendingDelete?.kind === 'brand' ? 'Xóa brand' : 'Xóa danh mục'}
+        description={
+          pendingDelete
+            ? `Bạn chắc chắn muốn xóa ${pendingDelete.kind === 'brand' ? 'brand' : 'danh mục'} "${pendingDelete.name}"? Hành động này không thể hoàn tác.`
+            : undefined
+        }
+        confirmText="Xóa"
+        confirmVariant="destructive"
+        loading={deleteLoading}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
