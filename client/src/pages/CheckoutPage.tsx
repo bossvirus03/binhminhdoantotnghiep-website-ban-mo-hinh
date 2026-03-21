@@ -1,24 +1,30 @@
-import { useMemo, useState } from 'react';
-import { toast } from '@/components/ui/toast';
-import { Link } from 'react-router-dom';
-import { apiFetch } from '../api/http';
-import { useAuth } from '../auth/AuthContext';
-import { getCart, setCart } from '../lib/storage';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useMemo, useState } from "react";
+import { toast } from "@/components/ui/toast";
+import { Link } from "react-router-dom";
+import { apiFetch } from "../api/http";
+import { useAuth } from "../auth/AuthContext";
+import { getCart, setCart } from "../lib/storage";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function formatMoney(v: number) {
-  return v.toLocaleString('vi-VN');
+  return v.toLocaleString("vi-VN");
 }
 
-const CHECKOUT_IDEMPOTENCY_KEY_STORAGE = 'checkout:idempotencyKey';
+const CHECKOUT_IDEMPOTENCY_KEY_STORAGE = "checkout:idempotencyKey";
 
 function createIdempotencyKey() {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -32,17 +38,25 @@ type CheckoutResult = {
   shippingFee: number;
   total: number;
   createdAt: string;
-  items: Array<{ productId: string; productName: string; unitPrice: number; quantity: number; lineTotal: number }>;
+  items: Array<{
+    productId: string;
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    lineTotal: number;
+  }>;
 };
 
 export function CheckoutPage() {
   const { token, user, refreshMe } = useAuth();
   const cart = useMemo(() => getCart(), []);
 
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'BANK_TRANSFER'>('COD');
-  const [fullName, setFullName] = useState(user?.fullName ?? '');
-  const [phone, setPhone] = useState(user?.phone ?? '');
-  const [address, setAddress] = useState(user?.address ?? '');
+  const [paymentMethod, setPaymentMethod] = useState<"COD" | "BANK_TRANSFER">(
+    "COD",
+  );
+  const [fullName, setFullName] = useState(user?.fullName ?? "");
+  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [address, setAddress] = useState(user?.address ?? "");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CheckoutResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -65,18 +79,21 @@ export function CheckoutPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const res = await apiFetch<CheckoutResult>('/orders/checkout', {
-        method: 'POST',
+      const res = await apiFetch<CheckoutResult>("/orders/checkout", {
+        method: "POST",
         token,
         headers: {
-          'Idempotency-Key': idempotencyKey,
+          "Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify({
           paymentMethod,
           fullName,
           phone,
           address,
-          items: cart.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          items: cart.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+          })),
         }),
       });
       setResult(res);
@@ -88,10 +105,10 @@ export function CheckoutPage() {
       }
       setIdempotencyKey(createIdempotencyKey());
       await refreshMe();
-      toast.success('Đặt hàng thành công!');
+      toast.success("Đặt hàng thành công!");
     } catch (e: any) {
-      setError(e?.message ?? 'Checkout failed');
-      toast.error('Đặt hàng thất bại!');
+      setError(e?.message ?? "Checkout failed");
+      toast.error("Đặt hàng thất bại!");
     } finally {
       setSubmitting(false);
     }
@@ -101,7 +118,9 @@ export function CheckoutPage() {
     return (
       <div className="space-y-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Thanh toán/Đặt hàng</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Thanh toán/Đặt hàng
+          </h2>
         </div>
         <Card>
           <CardHeader>
@@ -120,7 +139,9 @@ export function CheckoutPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Thanh toán/Đặt hàng</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Thanh toán/Đặt hàng
+        </h2>
         <p className="text-sm text-muted-foreground">
           Xác nhận phương thức thanh toán và thông tin nhận hàng.
         </p>
@@ -140,10 +161,12 @@ export function CheckoutPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="text-sm">
-              <span className="text-muted-foreground">Mã đơn</span>: <Badge variant="secondary">{result.id}</Badge>
+              <span className="text-muted-foreground">Mã đơn</span>:{" "}
+              <Badge variant="secondary">{result.id}</Badge>
             </div>
             <div className="text-sm">
-              <span className="text-muted-foreground">Tổng tiền</span>: {formatMoney(result.total)}đ
+              <span className="text-muted-foreground">Tổng tiền</span>:{" "}
+              {formatMoney(result.total)}đ
             </div>
             <div className="pt-2">
               <Button asChild>
@@ -164,24 +187,28 @@ export function CheckoutPage() {
                 <input
                   type="radio"
                   name="pm"
-                  checked={paymentMethod === 'COD'}
-                  onChange={() => setPaymentMethod('COD')}
+                  checked={paymentMethod === "COD"}
+                  onChange={() => setPaymentMethod("COD")}
                 />
                 <div>
                   <div className="text-sm font-medium">COD</div>
-                  <div className="text-sm text-muted-foreground">Thanh toán khi nhận hàng</div>
+                  <div className="text-sm text-muted-foreground">
+                    Thanh toán khi nhận hàng
+                  </div>
                 </div>
               </label>
               <label className="flex cursor-pointer items-center gap-2 rounded-md border p-3 hover:bg-accent">
                 <input
                   type="radio"
                   name="pm"
-                  checked={paymentMethod === 'BANK_TRANSFER'}
-                  onChange={() => setPaymentMethod('BANK_TRANSFER')}
+                  checked={paymentMethod === "BANK_TRANSFER"}
+                  onChange={() => setPaymentMethod("BANK_TRANSFER")}
                 />
                 <div>
                   <div className="text-sm font-medium">Chuyển khoản</div>
-                  <div className="text-sm text-muted-foreground">Chuyển khoản ngân hàng</div>
+                  <div className="text-sm text-muted-foreground">
+                    Chuyển khoản ngân hàng
+                  </div>
                 </div>
               </label>
             </CardContent>
@@ -190,20 +217,34 @@ export function CheckoutPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Thông tin nhận hàng</CardTitle>
-              <CardDescription>Nhập địa chỉ và liên hệ để giao hàng.</CardDescription>
+              <CardDescription>
+                Nhập địa chỉ và liên hệ để giao hàng.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="fullName">Họ tên</Label>
-                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                <Input
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="phone">SĐT</Label>
-                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="address">Địa chỉ</Label>
-                <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -211,14 +252,21 @@ export function CheckoutPage() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-lg">Xác nhận thanh toán</CardTitle>
-              <CardDescription>Kiểm tra tổng tiền trước khi đặt hàng.</CardDescription>
+              <CardDescription>
+                Kiểm tra tổng tiền trước khi đặt hàng.
+              </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm">
-                <span className="text-muted-foreground">Tạm tính</span>: <span className="font-medium">{formatMoney(subtotal)}đ</span>
+                <span className="text-muted-foreground">Tạm tính</span>:{" "}
+                <span className="font-medium">{formatMoney(subtotal)}đ</span>
               </div>
-              <Button onClick={submit} disabled={submitting} aria-disabled={submitting}>
-                {submitting ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
+              <Button
+                onClick={submit}
+                disabled={submitting}
+                aria-disabled={submitting}
+              >
+                {submitting ? "Đang xử lý..." : "Xác nhận thanh toán"}
               </Button>
             </CardContent>
           </Card>
