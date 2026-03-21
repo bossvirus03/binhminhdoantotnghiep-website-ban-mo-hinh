@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { apiFetch } from '../api/http';
-import { ConfirmModal } from '@/components/ConfirmModal';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/components/ui/toast';
+import { useEffect, useState } from "react";
+import { useAuth } from "../auth/AuthContext";
+import { apiFetch } from "../api/http";
+import { ConfirmModal } from "@/components/ConfirmModal";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/toast";
 
 interface Taxonomy {
   id: string;
@@ -14,7 +14,7 @@ interface Taxonomy {
 }
 
 type PendingDelete = {
-  kind: 'brand' | 'category';
+  kind: "brand" | "category";
   id: string;
   name: string;
 };
@@ -24,12 +24,14 @@ export function AdminTaxonomies() {
   const [brands, setBrands] = useState<Taxonomy[] | null>(null);
   const [categories, setCategories] = useState<Taxonomy[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
+    null,
+  );
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const [brandName, setBrandName] = useState('');
+  const [brandName, setBrandName] = useState("");
   const [brandEditing, setBrandEditing] = useState<string | null>(null);
-  const [categoryName, setCategoryName] = useState('');
+  const [categoryName, setCategoryName] = useState("");
   const [categoryEditing, setCategoryEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -38,13 +40,13 @@ export function AdminTaxonomies() {
     setLoading(true);
     try {
       const [b, c] = await Promise.all([
-        apiFetch<Taxonomy[]>('/admin/brands', { token }),
-        apiFetch<Taxonomy[]>('/admin/categories', { token }),
+        apiFetch<Taxonomy[]>("/admin/brands", { token }),
+        apiFetch<Taxonomy[]>("/admin/categories", { token }),
       ]);
       setBrands(b);
       setCategories(c);
     } catch {
-      toast.error('Lỗi tải danh sách');
+      toast.error("Lỗi tải danh sách");
     } finally {
       setLoading(false);
     }
@@ -61,24 +63,24 @@ export function AdminTaxonomies() {
     try {
       if (brandEditing) {
         await apiFetch(`/admin/brands/${brandEditing}`, {
-          method: 'PATCH',
+          method: "PATCH",
           token,
           body: JSON.stringify({ name: brandName.trim() }),
         });
-        toast.success('Đã cập nhật brand');
+        toast.success("Đã cập nhật brand");
       } else {
-        await apiFetch('/admin/brands', {
-          method: 'POST',
+        await apiFetch("/admin/brands", {
+          method: "POST",
           token,
           body: JSON.stringify({ name: brandName.trim() }),
         });
-        toast.success('Đã thêm brand');
+        toast.success("Đã thêm brand");
       }
-      setBrandName('');
+      setBrandName("");
       setBrandEditing(null);
       load();
     } catch {
-      toast.error('Lỗi lưu brand');
+      toast.error("Lỗi lưu brand");
     } finally {
       setSaving(false);
     }
@@ -90,61 +92,77 @@ export function AdminTaxonomies() {
     try {
       if (categoryEditing) {
         await apiFetch(`/admin/categories/${categoryEditing}`, {
-          method: 'PATCH',
+          method: "PATCH",
           token,
           body: JSON.stringify({ name: categoryName.trim() }),
         });
-        toast.success('Đã cập nhật danh mục');
+        toast.success("Đã cập nhật danh mục");
       } else {
-        await apiFetch('/admin/categories', {
-          method: 'POST',
+        await apiFetch("/admin/categories", {
+          method: "POST",
           token,
           body: JSON.stringify({ name: categoryName.trim() }),
         });
-        toast.success('Đã thêm danh mục');
+        toast.success("Đã thêm danh mục");
       }
-      setCategoryName('');
+      setCategoryName("");
       setCategoryEditing(null);
       load();
     } catch {
-      toast.error('Lỗi lưu danh mục');
+      toast.error("Lỗi lưu danh mục");
     } finally {
       setSaving(false);
     }
   }
 
   function requestDeleteBrand(brand: Taxonomy) {
-    setPendingDelete({ kind: 'brand', id: brand.id, name: brand.name });
+    setPendingDelete({ kind: "brand", id: brand.id, name: brand.name });
   }
 
   function requestDeleteCategory(category: Taxonomy) {
-    setPendingDelete({ kind: 'category', id: category.id, name: category.name });
+    setPendingDelete({
+      kind: "category",
+      id: category.id,
+      name: category.name,
+    });
   }
 
   async function confirmDelete() {
     if (!token || !pendingDelete) return;
     setDeleteLoading(true);
     try {
-      if (pendingDelete.kind === 'brand') {
-        await apiFetch(`/admin/brands/${pendingDelete.id}`, { method: 'DELETE', token });
-        toast.success('Đã xóa brand');
-        setBrands((prev) => prev?.filter((b) => b.id !== pendingDelete.id) ?? prev);
+      if (pendingDelete.kind === "brand") {
+        await apiFetch(`/admin/brands/${pendingDelete.id}`, {
+          method: "DELETE",
+          token,
+        });
+        toast.success("Đã xóa brand");
+        setBrands(
+          (prev) => prev?.filter((b) => b.id !== pendingDelete.id) ?? prev,
+        );
         if (brandEditing === pendingDelete.id) {
           setBrandEditing(null);
-          setBrandName('');
+          setBrandName("");
         }
       } else {
-        await apiFetch(`/admin/categories/${pendingDelete.id}`, { method: 'DELETE', token });
-        toast.success('Đã xóa danh mục');
-        setCategories((prev) => prev?.filter((c) => c.id !== pendingDelete.id) ?? prev);
+        await apiFetch(`/admin/categories/${pendingDelete.id}`, {
+          method: "DELETE",
+          token,
+        });
+        toast.success("Đã xóa danh mục");
+        setCategories(
+          (prev) => prev?.filter((c) => c.id !== pendingDelete.id) ?? prev,
+        );
         if (categoryEditing === pendingDelete.id) {
           setCategoryEditing(null);
-          setCategoryName('');
+          setCategoryName("");
         }
       }
       setPendingDelete(null);
     } catch {
-      toast.error(pendingDelete.kind === 'brand' ? 'Lỗi xóa brand' : 'Lỗi xóa danh mục');
+      toast.error(
+        pendingDelete.kind === "brand" ? "Lỗi xóa brand" : "Lỗi xóa danh mục",
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -166,14 +184,18 @@ export function AdminTaxonomies() {
                   variant="outline"
                   onClick={() => {
                     setBrandEditing(null);
-                    setBrandName('');
+                    setBrandName("");
                   }}
                 >
                   Hủy sửa
                 </Button>
               )}
-              <Button size="sm" onClick={saveBrand} disabled={saving || !brandName.trim()}>
-                {brandEditing ? 'Lưu' : 'Thêm'}
+              <Button
+                size="sm"
+                onClick={saveBrand}
+                disabled={saving || !brandName.trim()}
+              >
+                {brandEditing ? "Lưu" : "Thêm"}
               </Button>
             </div>
           </CardHeader>
@@ -192,7 +214,9 @@ export function AdminTaxonomies() {
             ) : (
               <div className="space-y-2">
                 {brands.length === 0 && (
-                  <p className="text-sm text-muted-foreground">Chưa có brand.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Chưa có brand.
+                  </p>
                 )}
                 {brands.map((b) => (
                   <div
@@ -239,14 +263,18 @@ export function AdminTaxonomies() {
                   variant="outline"
                   onClick={() => {
                     setCategoryEditing(null);
-                    setCategoryName('');
+                    setCategoryName("");
                   }}
                 >
                   Hủy sửa
                 </Button>
               )}
-              <Button size="sm" onClick={saveCategory} disabled={saving || !categoryName.trim()}>
-                {categoryEditing ? 'Lưu' : 'Thêm'}
+              <Button
+                size="sm"
+                onClick={saveCategory}
+                disabled={saving || !categoryName.trim()}
+              >
+                {categoryEditing ? "Lưu" : "Thêm"}
               </Button>
             </div>
           </CardHeader>
@@ -265,7 +293,9 @@ export function AdminTaxonomies() {
             ) : (
               <div className="space-y-2">
                 {categories.length === 0 && (
-                  <p className="text-sm text-muted-foreground">Chưa có danh mục.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Chưa có danh mục.
+                  </p>
                 )}
                 {categories.map((c) => (
                   <div
@@ -302,10 +332,10 @@ export function AdminTaxonomies() {
 
       <ConfirmModal
         open={pendingDelete !== null}
-        title={pendingDelete?.kind === 'brand' ? 'Xóa brand' : 'Xóa danh mục'}
+        title={pendingDelete?.kind === "brand" ? "Xóa brand" : "Xóa danh mục"}
         description={
           pendingDelete
-            ? `Bạn chắc chắn muốn xóa ${pendingDelete.kind === 'brand' ? 'brand' : 'danh mục'} "${pendingDelete.name}"? Hành động này không thể hoàn tác.`
+            ? `Bạn chắc chắn muốn xóa ${pendingDelete.kind === "brand" ? "brand" : "danh mục"} "${pendingDelete.name}"? Hành động này không thể hoàn tác.`
             : undefined
         }
         confirmText="Xóa"
