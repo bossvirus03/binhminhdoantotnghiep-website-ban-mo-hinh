@@ -58,14 +58,26 @@ export function ConfirmModal({
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-lg">{title}</CardTitle>
-          {description ? <CardDescription>{description}</CardDescription> : null}
+          {description ? (
+            <CardDescription>{description}</CardDescription>
+          ) : null}
         </CardHeader>
         <CardContent />
         <CardFooter className="justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={loading}
+          >
             {cancelText}
           </Button>
-          <Button type="button" variant={confirmVariant} onClick={onConfirm} disabled={loading}>
+          <Button
+            type="button"
+            variant={confirmVariant}
+            onClick={onConfirm}
+            disabled={loading}
+          >
             {loading ? "Đang xử lý..." : confirmText}
           </Button>
         </CardFooter>
