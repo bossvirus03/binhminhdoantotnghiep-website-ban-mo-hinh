@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
-import { Order } from "../types";
+import type { Order } from "../types";
 import { OrderDetailModal } from "@/components/OrderDetailModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";

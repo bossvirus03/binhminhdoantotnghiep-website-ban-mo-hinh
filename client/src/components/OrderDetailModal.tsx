@@ -111,7 +111,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           <Button type="button" variant="outline" onClick={onClose}>
             Đóng
           </Button>
-          {canDelete && (
+          {/* {canDelete && (
             <Button
               type="button"
               variant="destructive"
@@ -119,7 +119,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             >
               Xoá đơn hàng
             </Button>
-          )}
+          )} */}
         </div>
       </div>
     </div>

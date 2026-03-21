@@ -18,21 +18,6 @@ export function AdminUsers() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'user' | 'admin'>('user');
-  const [creating, setCreating] = useState(false);
-  const [showCreate, setShowCreate] = useState(false);
-
-  const currentUserId = useMemo(() => {
-    try {
-      const stored = localStorage.getItem('accessToken');
-      return stored ? JSON.parse(atob(stored.split('.')[1]))?.sub : null;
-    } catch {
-      return null;
-    }
-  }, []);
-
   async function load() {
     if (!token) return;
     setLoading(true);
@@ -85,33 +70,6 @@ export function AdminUsers() {
       toast.error("Lỗi xóa người dùng");
     } finally {
       setDeleteLoading(false);
-    }
-  }
-
-  async function createUser(e: React.FormEvent) {
-    e.preventDefault();
-    if (!token) return;
-    if (!newEmail || !newPassword) {
-      toast.error('Nhập email và mật khẩu');
-      return;
-    }
-    setCreating(true);
-    try {
-      await apiFetch('/admin/users', {
-        method: 'POST',
-        token,
-        body: JSON.stringify({ email: newEmail, password: newPassword, role: newRole }),
-      });
-      toast.success('Đã tạo người dùng');
-      setNewEmail('');
-      setNewPassword('');
-      setNewRole('user');
-      setShowCreate(false);
-      load();
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Lỗi tạo người dùng');
-    } finally {
-      setCreating(false);
     }
   }
 

@@ -15,6 +15,15 @@ function formatMoney(v: number) {
   return v.toLocaleString('vi-VN');
 }
 
+const CHECKOUT_IDEMPOTENCY_KEY_STORAGE = 'checkout:idempotencyKey';
+
+function createIdempotencyKey() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 type CheckoutResult = {
   id: string;
   status: string;
@@ -36,16 +45,32 @@ export function CheckoutPage() {
   const [address, setAddress] = useState(user?.address ?? '');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CheckoutResult | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => {
+    try {
+      const existing = sessionStorage.getItem(CHECKOUT_IDEMPOTENCY_KEY_STORAGE);
+      if (existing) return existing;
+      const next = createIdempotencyKey();
+      sessionStorage.setItem(CHECKOUT_IDEMPOTENCY_KEY_STORAGE, next);
+      return next;
+    } catch {
+      return createIdempotencyKey();
+    }
+  });
 
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   async function submit() {
-    if (!token) return;
+    if (!token || submitting) return;
     setError(null);
+    setSubmitting(true);
     try {
       const res = await apiFetch<CheckoutResult>('/orders/checkout', {
         method: 'POST',
         token,
+        headers: {
+          'Idempotency-Key': idempotencyKey,
+        },
         body: JSON.stringify({
           paymentMethod,
           fullName,
@@ -56,11 +81,19 @@ export function CheckoutPage() {
       });
       setResult(res);
       setCart([]);
+      try {
+        sessionStorage.removeItem(CHECKOUT_IDEMPOTENCY_KEY_STORAGE);
+      } catch {
+        // ignore
+      }
+      setIdempotencyKey(createIdempotencyKey());
       await refreshMe();
       toast.success('Đặt hàng thành công!');
     } catch (e: any) {
       setError(e?.message ?? 'Checkout failed');
       toast.error('Đặt hàng thất bại!');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -184,7 +217,9 @@ export function CheckoutPage() {
               <div className="text-sm">
                 <span className="text-muted-foreground">Tạm tính</span>: <span className="font-medium">{formatMoney(subtotal)}đ</span>
               </div>
-              <Button onClick={submit}>Xác nhận thanh toán</Button>
+              <Button onClick={submit} disabled={submitting} aria-disabled={submitting}>
+                {submitting ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
+              </Button>
             </CardContent>
           </Card>
         </div>
