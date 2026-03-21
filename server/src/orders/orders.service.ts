@@ -5,6 +5,43 @@ import { PrismaService } from '../prisma/prisma.service';
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getUserOrders(userId: string) {
+    const orders = await this.prisma.order.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { imageUrl: true },
+            },
+          },
+        },
+      },
+    });
+
+    return orders.map((order) => ({
+      id: order.id,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      subtotal: order.subtotal,
+      shippingFee: order.shippingFee,
+      total: order.total,
+      fullName: order.fullName,
+      phone: order.phone,
+      address: order.address,
+      createdAt: order.createdAt,
+      items: order.items.map((item) => ({
+        productId: item.productId,
+        productName: item.productName,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        lineTotal: item.lineTotal,
+        productImage: item.product?.imageUrl ?? null,
+      })),
+    }));
+  }
+
   async checkout(input: {
     userId: string;
     items: { productId: string; quantity: number }[];

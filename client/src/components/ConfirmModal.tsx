@@ -2,7 +2,6 @@ import * as React from "react";
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -62,7 +61,6 @@ export function ConfirmModal({
             <CardDescription>{description}</CardDescription>
           ) : null}
         </CardHeader>
-        <CardContent />
         <CardFooter className="justify-end gap-2">
           <Button
             type="button"

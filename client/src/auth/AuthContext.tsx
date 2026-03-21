@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '../api/http';
 import type { User } from '../types';
-import { getToken, setToken } from '../lib/storage';
+import { clearCart, getToken, setToken } from '../lib/storage';
 
 type AuthContextValue = {
   token: string | null;
@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setTokenState(null);
     setUser(null);
+    clearCart();
   }
 
   const value = useMemo<AuthContextValue>(

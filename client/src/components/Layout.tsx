@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { getCart, subscribeCartChange } from "../lib/storage";
@@ -17,12 +17,27 @@ export function Layout() {
   const [cartCount, setCartCount] = useState(() =>
     getCart().reduce((sum, i) => sum + i.quantity, 0),
   );
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     return subscribeCartChange(() => {
       setCartCount(getCart().reduce((sum, i) => sum + i.quantity, 0));
     });
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const userInitial = (user?.email?.[0] ?? "U").toUpperCase();
 
   return (
     <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
@@ -59,16 +74,28 @@ export function Layout() {
 
             <Button asChild variant="ghost">
               <NavLink to="/cart" className={navItemClass}>
-                <span className="flex items-center gap-2">
-                  Giỏ hàng
-                  <Badge variant="secondary">{cartCount}</Badge>
+                <span className="relative flex items-center gap-2">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-muted text-primary">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      className="h-5 w-5"
+                    >
+                      <path d="M3 5h2l1.5 12h11L19 8H6" />
+                      <circle cx="9" cy="20" r="1" />
+                      <circle cx="17" cy="20" r="1" />
+                    </svg>
+                  </span>
+                  <Badge
+                    variant="secondary"
+                    className="absolute -right-2 -top-2 h-5 min-w-[20px] justify-center rounded-full px-1 text-xs text-white bg-red-500"
+                  >
+                    {cartCount}
+                  </Badge>
                 </span>
-              </NavLink>
-            </Button>
-
-            <Button asChild variant="ghost">
-              <NavLink to="/checkout" className={navItemClass}>
-                Thanh toán
               </NavLink>
             </Button>
 
@@ -95,14 +122,92 @@ export function Layout() {
                     </NavLink>
                   </Button>
                 )}
-                <Button asChild variant="ghost">
-                  <NavLink to="/account" className={navItemClass}>
-                    {user?.email ?? "Tài khoản"}
-                  </NavLink>
-                </Button>
-                <Button variant="outline" onClick={logout}>
-                  Đăng xuất
-                </Button>
+                <div className="relative" ref={menuRef}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    onClick={() => setUserMenuOpen((v) => !v)}
+                  >
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                      {userInitial}
+                    </span>
+                    <span className="hidden text-sm font-medium sm:inline">
+                      {user?.email ?? "Tài khoản"}
+                    </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      className="h-4 w-4 text-muted-foreground"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </Button>
+
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-56 rounded-md border bg-card shadow-lg">
+                      <div className="px-4 py-3 text-sm">
+                        <div className="font-semibold">Tài khoản</div>
+                        <div className="text-muted-foreground truncate">
+                          {user?.email}
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="grid gap-1 py-2 text-sm">
+                        <NavLink
+                          to="/checkout"
+                          className={({ isActive }) =>
+                            cn(
+                              "px-4 py-2 text-left hover:bg-muted",
+                              isActive && "bg-muted/70",
+                            )
+                          }
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Thanh toán
+                        </NavLink>
+                        <NavLink
+                          to="/orders"
+                          className={({ isActive }) =>
+                            cn(
+                              "px-4 py-2 text-left hover:bg-muted",
+                              isActive && "bg-muted/70",
+                            )
+                          }
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Đơn mua
+                        </NavLink>
+                        <NavLink
+                          to="/account"
+                          className={({ isActive }) =>
+                            cn(
+                              "px-4 py-2 text-left hover:bg-muted",
+                              isActive && "bg-muted/70",
+                            )
+                          }
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Thông tin cá nhân
+                        </NavLink>
+                      </div>
+                      <Separator />
+                      <button
+                        type="button"
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          logout();
+                        }}
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -170,7 +275,11 @@ export function Layout() {
                 rel="noopener noreferrer"
                 title="Shopee"
               >
-                <img src="https://images.seeklogo.com/logo-png/53/2/shopee-logo-png_seeklogo-530807.png" alt="Shopee" className="w-8 h-8" />
+                <img
+                  src="https://images.seeklogo.com/logo-png/53/2/shopee-logo-png_seeklogo-530807.png"
+                  alt="Shopee"
+                  className="w-8 h-8"
+                />
               </a>
               {/* Zalo */}
               <a
@@ -179,7 +288,11 @@ export function Layout() {
                 rel="noopener noreferrer"
                 title="Zalo"
               >
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/960px-Icon_of_Zalo.svg.png" alt="Zalo" className="w-8 h-8" />
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/960px-Icon_of_Zalo.svg.png"
+                  alt="Zalo"
+                  className="w-8 h-8"
+                />
               </a>
             </div>
           </div>

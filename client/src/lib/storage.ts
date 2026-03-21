@@ -28,6 +28,11 @@ export function setCart(items: CartItem[]) {
   window.dispatchEvent(new Event(CART_CHANGED_EVENT));
 }
 
+export function clearCart() {
+  localStorage.removeItem(CART_KEY);
+  window.dispatchEvent(new Event(CART_CHANGED_EVENT));
+}
+
 export function subscribeCartChange(cb: () => void) {
   window.addEventListener(CART_CHANGED_EVENT, cb);
   // Also listen to storage events (cross-tab)
