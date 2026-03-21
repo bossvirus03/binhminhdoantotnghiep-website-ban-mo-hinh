@@ -46,7 +46,11 @@ export class AuthService {
     return this.issueToken(user.id, user.email, user.role);
   }
 
-  private async issueToken(userId: string, email: string, role: 'user' | 'admin') {
+  private async issueToken(
+    userId: string,
+    email: string,
+    role: 'user' | 'admin',
+  ) {
     const payload: JwtPayload = { sub: userId, email, role };
     const accessToken = await this.jwtService.signAsync(payload);
 
@@ -76,7 +80,11 @@ export class AuthService {
     const tokenHash = createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + 1000 * 60 * 30);
 
-    await this.usersService.setResetPasswordToken(user.id, tokenHash, expiresAt);
+    await this.usersService.setResetPasswordToken(
+      user.id,
+      tokenHash,
+      expiresAt,
+    );
 
     // Dev-mode: return token so frontend can proceed.
     // In production, send token via email.
@@ -88,7 +96,10 @@ export class AuthService {
     const user = await this.usersService.findByResetTokenHash(tokenHash);
     if (!user) throw new BadRequestException('Invalid token');
 
-    if (!user.resetPasswordTokenExpiresAt || user.resetPasswordTokenExpiresAt < new Date()) {
+    if (
+      !user.resetPasswordTokenExpiresAt ||
+      user.resetPasswordTokenExpiresAt < new Date()
+    ) {
       throw new BadRequestException('Token expired');
     }
 

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Delete,
@@ -157,7 +158,10 @@ export class AdminController {
 
   @Patch('brands/:id')
   updateBrand(@Param('id') id: string, @Body() dto: AdminUpdateBrandDto) {
-    return this.prisma.brand.update({ where: { id }, data: { ...(dto.name ? { name: dto.name.trim() } : {}) } });
+    return this.prisma.brand.update({
+      where: { id },
+      data: { ...(dto.name ? { name: dto.name.trim() } : {}) },
+    });
   }
 
   @Delete('brands/:id')
@@ -177,11 +181,11 @@ export class AdminController {
   }
 
   @Patch('categories/:id')
-  updateCategory(
-    @Param('id') id: string,
-    @Body() dto: AdminUpdateCategoryDto,
-  ) {
-    return this.prisma.category.update({ where: { id }, data: { ...(dto.name ? { name: dto.name.trim() } : {}) } });
+  updateCategory(@Param('id') id: string, @Body() dto: AdminUpdateCategoryDto) {
+    return this.prisma.category.update({
+      where: { id },
+      data: { ...(dto.name ? { name: dto.name.trim() } : {}) },
+    });
   }
 
   @Delete('categories/:id')
@@ -242,5 +246,18 @@ export class AdminController {
     });
     if (!order) return null;
     return order;
+  }
+
+  @Delete('orders/:id')
+  async deleteOrder(@Param('id') id: string) {
+    const existing = await this.prisma.order.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Order not found');
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.orderItem.deleteMany({ where: { orderId: id } });
+      await tx.order.delete({ where: { id } });
+    });
+
+    return { ok: true };
   }
 }

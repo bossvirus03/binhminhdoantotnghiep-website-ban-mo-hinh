@@ -14,11 +14,7 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async createUser(input: {
-    email: string;
-    passwordHash: string;
-    role: Role;
-  }) {
+  async createUser(input: { email: string; passwordHash: string; role: Role }) {
     return this.prisma.user.create({
       data: {
         email: input.email,
@@ -39,18 +35,30 @@ export class UsersService {
   }
 
   async updatePassword(userId: string, passwordHash: string) {
-    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash } });
-  }
-
-  async setResetPasswordToken(userId: string, tokenHash: string, expiresAt: Date) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { resetPasswordTokenHash: tokenHash, resetPasswordTokenExpiresAt: expiresAt },
+      data: { passwordHash },
+    });
+  }
+
+  async setResetPasswordToken(
+    userId: string,
+    tokenHash: string,
+    expiresAt: Date,
+  ) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        resetPasswordTokenHash: tokenHash,
+        resetPasswordTokenExpiresAt: expiresAt,
+      },
     });
   }
 
   findByResetTokenHash(tokenHash: string) {
-    return this.prisma.user.findFirst({ where: { resetPasswordTokenHash: tokenHash } });
+    return this.prisma.user.findFirst({
+      where: { resetPasswordTokenHash: tokenHash },
+    });
   }
 
   async clearResetPasswordToken(userId: string) {

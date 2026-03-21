@@ -1,17 +1,23 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 interface OrderDetailModalProps {
   open: boolean;
   onClose: () => void;
   order: any | null;
+  onDelete?: (orderId: string) => void;
 }
 
 export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   open,
   onClose,
   order,
+  onDelete,
 }) => {
   if (!open || !order) return null;
+
+  const canDelete = typeof onDelete === "function";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded shadow-lg w-full max-w-lg p-6 relative">
@@ -68,6 +74,21 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             </table>
           </div>
         )}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Đóng
+          </Button>
+          {canDelete && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => onDelete(order.id)}
+            >
+              Xoá đơn hàng
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

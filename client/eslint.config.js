@@ -12,11 +12,18 @@ export default defineConfig([
     extends: [
       // js.configs.recommended,
       // tseslint.configs.recommended,
-      // reactHooks.configs.flat.recommended,
-      // reactRefresh.configs.vite,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
     ],
     languageOptions: {
+      parser: tseslint.parser,
       ecmaVersion: 2020,
+      sourceType: "module",
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
       globals: globals.browser,
     },
   },

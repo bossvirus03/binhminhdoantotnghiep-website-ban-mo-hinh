@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { apiFetch } from '../api/http';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,8 @@ export function AdminProducts() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingDeleteProduct, setPendingDeleteProduct] = useState<Product | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
@@ -167,44 +170,57 @@ export function AdminProducts() {
     }
   }
 
-  async function removeProduct(id: string) {
-    if (!token) return;
-    if (!confirm('Xóa sản phẩm này?')) return;
+  function requestRemoveProduct(product: Product) {
+    setPendingDeleteProduct(product);
+  }
+
+  async function confirmRemoveProduct() {
+    if (!token || !pendingDeleteProduct) return;
+    setDeleteLoading(true);
     try {
-      await apiFetch(`/admin/products/${id}`, { method: 'DELETE', token });
+      await apiFetch(`/admin/products/${pendingDeleteProduct.id}`, {
+        method: 'DELETE',
+        token,
+      });
       toast.success('Đã xóa sản phẩm');
-      setProducts((prev) => (prev ? prev.filter((p) => p.id !== id) : prev));
+      setProducts((prev) =>
+        prev ? prev.filter((p) => p.id !== pendingDeleteProduct.id) : prev,
+      );
+      setPendingDeleteProduct(null);
     } catch {
       toast.error('Lỗi xóa sản phẩm');
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-lg">Quản lý sản phẩm</CardTitle>
-        <Button size="sm" onClick={openCreateForm}>
-          Thêm sản phẩm
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {formOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="w-full max-w-xl mx-4 rounded-md bg-background shadow-lg">
-              <div className="flex items-center justify-between border-b px-4 py-2">
-                <h2 className="text-base font-semibold">
-                  {editing ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}
-                </h2>
-                <button
-                  type="button"
-                  onClick={closeForm}
-                  className="text-xl leading-none hover:text-destructive"
-                  aria-label="Đóng"
-                >
-                  ×
-                </button>
-              </div>
-              <form onSubmit={handleSubmit} className="space-y-3 p-4">
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-lg">Quản lý sản phẩm</CardTitle>
+          <Button size="sm" onClick={openCreateForm}>
+            Thêm sản phẩm
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {formOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-xl mx-4 rounded-md bg-background shadow-lg">
+                <div className="flex items-center justify-between border-b px-4 py-2">
+                  <h2 className="text-base font-semibold">
+                    {editing ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={closeForm}
+                    className="text-xl leading-none hover:text-destructive"
+                    aria-label="Đóng"
+                  >
+                    ×
+                  </button>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-3 p-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
                     <label className="mb-1 block text-sm font-medium">Tên sản phẩm</label>
@@ -363,7 +379,7 @@ export function AdminProducts() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => removeProduct(p.id)}
+                        onClick={() => requestRemoveProduct(p)}
                       >
                         Xóa
                       </Button>
@@ -404,7 +420,22 @@ export function AdminProducts() {
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      <ConfirmModal
+        open={pendingDeleteProduct !== null}
+        title="Xóa sản phẩm"
+        description={
+          pendingDeleteProduct
+            ? `Bạn chắc chắn muốn xóa sản phẩm "${pendingDeleteProduct.name}"? Hành động này không thể hoàn tác.`
+            : undefined
+        }
+        confirmText="Xóa"
+        confirmVariant="destructive"
+        loading={deleteLoading}
+        onCancel={() => setPendingDeleteProduct(null)}
+        onConfirm={confirmRemoveProduct}
+      />
+    </>
   );
 }

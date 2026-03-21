@@ -5,7 +5,12 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ContactService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(input: { name?: string; email?: string; phone?: string; message: string }) {
+  create(input: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    message: string;
+  }) {
     return this.prisma.contactMessage.create({
       data: {
         name: input.name ?? '',

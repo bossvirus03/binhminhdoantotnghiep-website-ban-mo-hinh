@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { OrderDetailModal } from "../components/OrderDetailModal";
+import { ConfirmModal } from "../components/ConfirmModal";
 import { useAuth } from "../auth/AuthContext";
 import { apiFetch } from "../api/http";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
 
 interface OrderRow {
   id: string;
@@ -25,6 +27,8 @@ export function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState("");
   const [detailOrder, setDetailOrder] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [pendingDeleteOrderId, setPendingDeleteOrderId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const pageSize = 10;
 
   async function load() {
@@ -89,6 +93,29 @@ export function AdminOrders() {
     }
   }
 
+  function requestDelete(orderId: string) {
+    setPendingDeleteOrderId(orderId);
+  }
+
+  async function confirmDelete() {
+    if (!token || !pendingDeleteOrderId) return;
+    setDeleteLoading(true);
+    try {
+      await apiFetch(`/admin/orders/${pendingDeleteOrderId}`, {
+        method: "DELETE",
+        token,
+      });
+      toast.success("Đã xoá đơn hàng");
+      if (detailOrder?.id === pendingDeleteOrderId) setDetailOrder(null);
+      setPendingDeleteOrderId(null);
+      load();
+    } catch {
+      toast.error("Lỗi xoá đơn hàng");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
   return (
     <>
       <Card>
@@ -137,6 +164,7 @@ export function AdminOrders() {
                     <th className="p-2 text-right">Tổng tiền</th>
                     <th className="p-2">Trạng thái</th>
                     <th className="p-2">Ngày tạo</th>
+                    <th className="p-2 text-right">Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -187,6 +215,16 @@ export function AdminOrders() {
                         <td className="p-2 text-sm text-muted-foreground">
                           {new Date(o.createdAt).toLocaleString("vi-VN")}
                         </td>
+                        <td className="p-2 text-right">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => requestDelete(o.id)}
+                          >
+                            Xoá
+                          </Button>
+                        </td>
                       </tr>
                     ));
                   })()}
@@ -232,10 +270,28 @@ export function AdminOrders() {
           )}
         </CardContent>
       </Card>
+      <ConfirmModal
+        open={pendingDeleteOrderId !== null}
+        title="Xoá đơn hàng"
+        description={
+          pendingDeleteOrderId
+            ? `Bạn chắc chắn muốn xoá đơn hàng ${pendingDeleteOrderId}? Hành động này không thể hoàn tác.`
+            : undefined
+        }
+        confirmText="Xoá"
+        confirmVariant="destructive"
+        loading={deleteLoading}
+        onCancel={() => setPendingDeleteOrderId(null)}
+        onConfirm={confirmDelete}
+      />
       <OrderDetailModal
         open={!!detailOrder || detailLoading}
         onClose={() => setDetailOrder(null)}
         order={detailOrder}
+        onDelete={(id) => {
+          setDetailOrder(null);
+          requestDelete(id);
+        }}
       />
     </>
   );
